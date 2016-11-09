@@ -1,1 +1,0 @@
-# Urcovani-pozice-sipu
