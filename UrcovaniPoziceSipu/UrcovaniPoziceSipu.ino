@@ -113,6 +113,7 @@ void loop() {
   alreadyHit = 0;
 }
 
+///Calculates x and y coordinates of source of a sound when the left microphone catch the sound first.
 void PositionFromLeftSensor()
 {
   double shorterDistance = sensor2Delay * SPEEDOFSOUND;
