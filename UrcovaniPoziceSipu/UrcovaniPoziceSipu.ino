@@ -6,12 +6,12 @@ const double SPEEDOFSOUND = 0.034029;
 volatile byte riseIntOn = RISING;
 double xCoordinate;
 double yCoordinate;
-volatile unsigned long sensor1Delay;
-volatile unsigned long sensor2Delay;
-volatile unsigned long sensor3Delay;
-volatile unsigned long startTime;
-volatile unsigned long endTime1;
-volatile unsigned long endTime2;
+volatile unsigned long sensor1Delay; //Time between the sound propagets from one sensor to sensor1.
+volatile unsigned long sensor2Delay; //Time between the sound propagets from one sensor to sensor2.
+volatile unsigned long sensor3Delay;//Time between the sound propagets from one sensor to sensor3.
+volatile unsigned long startTime; //Time when the sound is for a first time catched.
+volatile unsigned long endTime1; //Time when the sound hits second microphone.
+volatile unsigned long endTime2; //Time when the sound hits third microphone.
 volatile int poradi;
 volatile bool measComplete=false;
 bool failMeas = false;
@@ -122,6 +122,7 @@ void PositionFromLeftSensor()
   yCoordinate =-(double)1/84*sqrt(abs(-(16*pow(shorterDistance,4)*pow(furtherDistance,2))/pow((2*shorterDistance-furtherDistance),2)+(7056*pow(shorterDistance,4))/pow((2*shorterDistance-furtherDistance),2)+(32*pow(shorterDistance,3)*pow(furtherDistance,3))/pow((2*shorterDistance-furtherDistance),2)-(14112*pow(shorterDistance,3)*furtherDistance)/pow((2*shorterDistance-furtherDistance),2)-(16*pow(shorterDistance,2)*pow(furtherDistance,4))/pow((2*shorterDistance-furtherDistance),2)+(3528*pow(shorterDistance,2)*pow(furtherDistance,2))/pow((2*shorterDistance-furtherDistance),2)+(1555848*pow(shorterDistance,2))/pow((2*shorterDistance-furtherDistance),2)+(3528*shorterDistance*pow(furtherDistance,3))/pow((2*shorterDistance-furtherDistance),2)-(194481*pow(furtherDistance,2))/pow((2*shorterDistance-furtherDistance),2)-(1555848*shorterDistance*furtherDistance)/pow((2*shorterDistance-furtherDistance),2)+85766121/pow((2*shorterDistance-furtherDistance),2)+1764*pow(furtherDistance,2)-777924));
   }
 
+///Calculates x and y coordinates of source of a sound when the middle microphone catch the sound first.
 void PositionFromMiddleSensor()
 {
   double toLeftDistance = sensor1Delay * SPEEDOFSOUND;
@@ -129,7 +130,8 @@ void PositionFromMiddleSensor()
   xCoordinate = (4*pow(toLeftDistance,2)*toRightDistance-4*toLeftDistance*pow(toRightDistance,2)+441*toLeftDistance-441*toRightDistance)/(84*(toLeftDistance+toRightDistance));
   yCoordinate = -sqrt(abs(16*pow(toLeftDistance,4)-(4*pow(toLeftDistance,2)*pow((4*pow(toLeftDistance,2)*toRightDistance-4*toLeftDistance*pow(toRightDistance,2)+441*toLeftDistance-441*toRightDistance),2))/(441*pow((toLeftDistance+toRightDistance),2))-(8*pow(toLeftDistance,2)*(4*pow(toLeftDistance,2)*toRightDistance-4*toLeftDistance*pow(toRightDistance,2)+441*toLeftDistance-441*toRightDistance))/(toLeftDistance+toRightDistance)+pow((4*pow(toLeftDistance,2)*toRightDistance-4*toLeftDistance*pow(toRightDistance,2)+441*toLeftDistance-441*toRightDistance),2)/pow((toLeftDistance+toRightDistance),2)+(882*(4*pow(toLeftDistance,2)*toRightDistance-4*toLeftDistance*pow(toRightDistance,2)+441*toLeftDistance-441*toRightDistance))/(toLeftDistance+toRightDistance)-3528*pow(toLeftDistance,2)+194481))/(8*toLeftDistance);
   }
-  
+
+///Calculates x and y coordinates of source of a sound when the left microphone catch the sound first.
 void PositionFromRightSensor()
 {
   double shorterDistance = sensor2Delay * SPEEDOFSOUND;
@@ -137,6 +139,7 @@ void PositionFromRightSensor()
   xCoordinate = (furtherDistance*(4*shorterDistance*(furtherDistance-shorterDistance)-441))/(84*(2*shorterDistance-furtherDistance));
   yCoordinate = -(double)1/2*sqrt(abs(-(64*pow(shorterDistance,4)*pow(furtherDistance,2))/pow((168*shorterDistance-84*furtherDistance),2)+(28224*pow(shorterDistance,4))/pow((168*shorterDistance-84*furtherDistance),2)+(128*pow(shorterDistance,3)*pow(furtherDistance,3))/pow((168*shorterDistance-84*furtherDistance),2)-(56448*pow(shorterDistance,3)*furtherDistance)/pow((168*shorterDistance-84*furtherDistance),2)-(64*pow(shorterDistance,2)*pow(furtherDistance,4))/pow((168*shorterDistance-84*furtherDistance),2)+(14112*pow(shorterDistance,2)*pow(furtherDistance,2))/pow((168*shorterDistance-84*furtherDistance),2)+(6223392*pow(shorterDistance,2))/pow((168*shorterDistance-84*furtherDistance),2)+(14112*shorterDistance*pow(furtherDistance,3))/pow((168*shorterDistance-84*furtherDistance),2)-(777924*pow(furtherDistance,2))/pow((168*shorterDistance-84*furtherDistance),2)-(6223392*shorterDistance*furtherDistance)/pow((168*shorterDistance-84*furtherDistance),2)+343064484/pow((168*shorterDistance-84*furtherDistance),2)+pow(furtherDistance,2)-441));
   }
+
   
 void TurnOnSensorslInterrupt()
 {
@@ -152,6 +155,8 @@ void TurnOffSensorsInterrupt()
   detachInterrupt(digitalPinToInterrupt(sensor3Pin)); 
   }  
 
+// When a sound is catched, save time when this happened for future calculation of the sound position. Returns number of usec between start time and actual time.
+// When first sound is catched, returns 0.
 long SaveTimeDifference()
 {
     if(poradi==0)
@@ -177,6 +182,7 @@ long SaveTimeDifference()
     }
   }
 
+// Interrupt routine from a sensor. If this is first time when the sound is catched, call SaveTimeDifference(). Otherwise do nothing.
 void sensor1Interrupt() {
   bool alreadyHitBool = alreadyHit&1;
   if(alreadyHitBool == 0)
@@ -186,6 +192,7 @@ void sensor1Interrupt() {
   }
 }
 
+// Interrupt routine from a sensor. If this is first time when the sound is catched, call SaveTimeDifference(). Otherwise do nothing.
 void sensor2Interrupt() {
   bool alreadyHitBool = alreadyHit&2;
   if(alreadyHitBool == 0)
@@ -195,6 +202,7 @@ void sensor2Interrupt() {
   }
 }
 
+// Interrupt routine from a sensor. If this is first time when the sound is catched, call SaveTimeDifference(). Otherwise do nothing.
 void sensor3Interrupt() {
   bool alreadyHitBool = alreadyHit&4;
   if(alreadyHitBool == 0)
