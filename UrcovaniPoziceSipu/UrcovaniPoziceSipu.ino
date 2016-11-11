@@ -16,7 +16,7 @@ volatile int poradi;
 volatile bool measComplete=false;
 bool failMeas = false;
 volatile byte alreadyHit;
-
+//aaa;
 void setup() {
   pinMode(ledPin, OUTPUT);
   pinMode(sensor1Pin, INPUT);
